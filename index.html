@@ -3,79 +3,148 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>SyncEdu - Platform Guru & Santri</title>
+    <title>SyncEdu - Synchronized Education</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;600;800&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Plus Jakarta Sans', sans-serif; }
+        .glass { background: rgba(255, 255, 255, 0.95); backdrop-filter: blur(10px); }
+    </style>
 </head>
-<body class="bg-slate-50 min-h-screen font-sans">
+<body class="bg-slate-50 min-h-screen">
 
-    <nav class="bg-blue-700 text-white p-4 shadow-lg">
-        <div class="container mx-auto flex justify-between items-center">
-            <h1 class="text-2xl font-bold italic">SyncEdu</h1>
-            <div id="userInfo" class="hidden flex items-center gap-3">
-                <span id="userNameDisp" class="text-sm font-medium"></span>
-                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs transition">Keluar</button>
+    <nav class="bg-white/80 sticky top-0 z-50 border-b border-slate-200 glass">
+        <div class="container mx-auto px-4 py-3 flex justify-between items-center">
+            <div class="flex items-center gap-2">
+                <div class="bg-blue-600 p-2 rounded-lg text-white shadow-lg">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <span class="text-xl font-extrabold tracking-tight text-slate-800 uppercase italic">SyncEdu</span>
+            </div>
+            <div id="userInfo" class="hidden flex items-center gap-4">
+                <span id="userNameDisp" class="text-sm font-semibold text-slate-600 bg-slate-100 px-3 py-1 rounded-full"></span>
+                <button onclick="location.reload()" class="text-red-500 hover:text-red-700 text-sm font-bold">Keluar</button>
             </div>
         </div>
     </nav>
 
     <div class="container mx-auto p-4 max-w-4xl">
-        <div id="loginSection" class="bg-white mt-10 p-8 rounded-2xl shadow-xl text-center max-w-md mx-auto border border-blue-100">
-            <h2 class="text-2xl font-bold mb-2 text-blue-700">Selamat Datang, Ustadz/Guru</h2>
-            <p class="text-gray-500 mb-8 text-sm">Silakan masuk untuk mengelola tugas santri.</p>
-            <button id="loginBtn" class="flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition w-full shadow-sm font-semibold">
+        
+        <div id="landingSection" class="mt-12 text-center animate-fade-in">
+            <div class="mb-8 flex flex-col items-center">
+                <div class="bg-blue-600 p-6 rounded-3xl text-white shadow-2xl mb-4 rotate-3">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-20 w-20" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5s3.332.477 4.5 1.253v13C19.832 18.477 18.246 18 16.5 18c-1.746 0-3.332.477-4.5 1.253" />
+                    </svg>
+                </div>
+                <h1 class="text-5xl font-black text-slate-900 italic tracking-tighter">SyncEdu</h1>
+                <p class="text-slate-500 font-medium tracking-widest uppercase text-sm mt-1">Synchronized Education</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-6 max-w-2xl mx-auto">
+                <button onclick="showLogin('guru')" class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 hover:border-blue-500 transition group">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition">👨‍🏫</div>
+                    <h3 class="text-xl font-bold text-slate-800">Lanjut sebagai Guru</h3>
+                    <p class="text-slate-500 text-sm mt-2">Buat soal dan pantau nilai santri.</p>
+                </button>
+                <button onclick="showLogin('murid')" class="bg-white p-8 rounded-3xl shadow-xl border border-slate-200 hover:border-green-500 transition group">
+                    <div class="text-4xl mb-4 group-hover:scale-110 transition">🎓</div>
+                    <h3 class="text-xl font-bold text-slate-800">Lanjut sebagai Murid</h3>
+                    <p class="text-slate-500 text-sm mt-2">Masukkan ID Guru untuk mulai ujian.</p>
+                </button>
+            </div>
+        </div>
+
+        <div id="loginGuru" class="hidden mt-10 bg-white p-8 rounded-3xl shadow-2xl text-center max-w-md mx-auto border border-blue-100">
+            <h2 class="text-2xl font-bold mb-6 text-slate-800">Login Guru</h2>
+            <button id="loginBtn" class="flex items-center justify-center gap-3 bg-white border border-slate-300 text-slate-700 px-6 py-3 rounded-xl hover:bg-slate-50 transition w-full shadow-sm font-semibold mb-4">
                 <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
                 Masuk dengan Google
             </button>
+            <button onclick="location.reload()" class="text-slate-400 text-sm hover:underline">Kembali</button>
+        </div>
+
+        <div id="loginMurid" class="hidden mt-10 bg-white p-8 rounded-3xl shadow-2xl max-w-md mx-auto border border-green-100">
+            <h2 class="text-2xl font-bold mb-6 text-center text-slate-800">Masuk sebagai Murid</h2>
+            <div class="space-y-4">
+                <input type="text" id="m_nama" placeholder="Nama Lengkap" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500">
+                <input type="text" id="m_kelas" placeholder="Kelas (Contoh: 10A)" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-green-500">
+                <input type="text" id="m_idGuru" placeholder="Masukkan ID Guru" class="w-full p-3 border border-slate-200 rounded-xl bg-slate-50 font-mono text-center text-xl font-bold text-blue-600 uppercase">
+                <button id="btnMasukMurid" class="w-full bg-green-600 text-white py-4 rounded-xl font-bold hover:bg-green-700 shadow-lg shadow-green-200 transition">Mulai Mengerjakan</button>
+            </div>
+            <button onclick="location.reload()" class="w-full text-slate-400 text-sm mt-4 hover:underline text-center">Kembali</button>
         </div>
 
         <div id="dashboardSection" class="hidden mt-6">
             <div class="flex flex-wrap gap-2 mb-6">
                 <button onclick="showTab('buatSoal')" id="btnTabSoal" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition">Buat Soal</button>
                 <button onclick="showTab('riwayat')" id="btnTabRiwayat" class="bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition">Riwayat Nilai</button>
-                <button id="btnZoom" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium ml-auto flex items-center gap-2 shadow-md">
-                    🎥 Buka Zoom (Pop-up)
+                <button id="btnMeet" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-full font-medium ml-auto flex items-center gap-2 shadow-md">
+                    🎥 Google Meet
                 </button>
             </div>
 
-            <div id="tabBuatSoal" class="bg-white p-6 rounded-xl shadow-md border border-gray-100 animate-fade-in">
-                <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Buat Tugas Baru</h3>
-                <div class="space-y-4">
+            <div id="tabBuatSoal" class="bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+                <div class="flex justify-between items-center mb-6 border-b pb-2">
+                    <h3 class="text-xl font-black text-slate-800">Panel Pembuatan Soal</h3>
+                    <span class="bg-blue-100 text-blue-700 text-xs font-bold px-3 py-1 rounded-full uppercase" id="soalCounter">0 Soal Siap</span>
+                </div>
+
+                <div class="space-y-5">
                     <div>
-                        <label class="block text-sm font-medium text-gray-700">Mata Pelajaran / Judul Tugas</label>
-                        <input type="text" id="judulTugas" class="w-full p-2 border border-gray-300 rounded-md mt-1 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: Nahwu - Bab Isim">
+                        <label class="block text-sm font-bold text-slate-700 mb-1 uppercase tracking-wider text-[10px]">Mata Pelajaran / Judul Tugas</label>
+                        <input type="text" id="judulTugas" class="w-full p-3 border border-slate-200 rounded-xl outline-none focus:ring-2 focus:ring-blue-500" placeholder="Contoh: Nahwu - Bab Isim">
                     </div>
-                    <div>
-                        <label class="block text-sm font-medium text-gray-700">Pertanyaan (Bisa Esai atau Pilihan Ganda)</label>
-                        <textarea id="teksSoal" rows="4" class="w-full p-2 border border-gray-300 rounded-md mt-1 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan soal-soal Anda di sini..."></textarea>
+
+                    <div class="grid grid-cols-2 gap-4">
+                        <button onclick="setTipe('esai')" id="btnEsai" class="p-3 border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold rounded-xl transition">📝 Esai</button>
+                        <button onclick="setTipe('pg')" id="btnPg" class="p-3 border-2 border-slate-200 text-slate-500 font-bold rounded-xl hover:bg-slate-50 transition">🔘 Pilihan Ganda</button>
                     </div>
-                    <div class="flex items-center justify-between bg-blue-50 p-5 rounded-xl border border-blue-100">
+
+                    <div id="formSoal" class="space-y-4 bg-slate-50 p-4 rounded-xl border border-slate-200">
                         <div>
-                            <p class="text-xs text-blue-800 font-bold uppercase tracking-wider">Kode Akses Santri:</p>
-                            <p id="generatedID" class="text-3xl font-mono text-blue-700 font-black">-----</p>
+                            <label id="labelSoal" class="block text-sm font-bold text-slate-600 mb-1 italic">Tulis Pertanyaan:</label>
+                            <textarea id="teksSoal" rows="3" class="w-full p-3 border border-slate-300 rounded-xl outline-none focus:ring-2 focus:ring-blue-500"></textarea>
                         </div>
-                        <button id="saveQuiz" class="bg-green-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-green-700 transition shadow-lg transform active:scale-95">
-                            Simpan & Bagikan
+
+                        <div id="opsiPG" class="hidden grid grid-cols-1 md:grid-cols-2 gap-3">
+                            <input type="text" id="opt_benar" placeholder="Jawaban BENAR" class="p-2 border border-green-300 bg-green-50 rounded-lg outline-none">
+                            <input type="text" id="opt_salah1" placeholder="Jawaban Salah 1" class="p-2 border border-red-200 rounded-lg outline-none">
+                            <input type="text" id="opt_salah2" placeholder="Jawaban Salah 2" class="p-2 border border-red-200 rounded-lg outline-none">
+                            <input type="text" id="opt_salah3" placeholder="Jawaban Salah 3" class="p-2 border border-red-200 rounded-lg outline-none">
+                        </div>
+                        
+                        <button id="addSoal" class="bg-blue-600 text-white px-6 py-2 rounded-lg font-bold hover:bg-blue-700 w-full">Selesai & Tambah Soal Berikutnya</button>
+                    </div>
+
+                    <div class="flex items-center justify-between bg-slate-900 p-5 rounded-2xl text-white shadow-xl">
+                        <div>
+                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">ID Guru (Berikan ke Murid):</p>
+                            <p id="generatedID" class="text-3xl font-black font-mono text-blue-400">-----</p>
+                        </div>
+                        <button id="saveQuiz" class="bg-green-500 text-white px-8 py-4 rounded-xl font-black hover:bg-green-600 transition shadow-lg transform active:scale-95 uppercase tracking-tighter">
+                            SIMPAN & BAGIKAN
                         </button>
                     </div>
                 </div>
             </div>
 
-            <div id="tabRiwayat" class="hidden bg-white p-6 rounded-xl shadow-md border border-gray-100">
-                <h3 class="text-xl font-bold mb-4 text-gray-800">Riwayat Pengerjaan Santri</h3>
-                <div class="overflow-x-auto text-center">
-                    <table class="w-full border-collapse">
-                        <thead>
-                            <tr class="bg-gray-100 text-gray-600 text-sm">
-                                <th class="p-3 border-b">Nama Santri</th>
-                                <th class="p-3 border-b">ID Tugas</th>
-                                <th class="p-3 border-b">Hasil</th>
-                                <th class="p-3 border-b">Durasi</th>
+            <div id="tabRiwayat" class="hidden bg-white p-6 rounded-2xl shadow-xl border border-slate-100">
+                <h3 class="text-xl font-bold mb-4 text-slate-800">Riwayat Pengerjaan Santri</h3>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left">
+                        <thead class="bg-slate-50 text-slate-500 uppercase text-[10px] font-black tracking-widest">
+                            <tr>
+                                <th class="p-4">Nama Santri</th>
+                                <th class="p-4 text-center">Kelas</th>
+                                <th class="p-4 text-center">Hasil</th>
+                                <th class="p-4 text-center">Aksi</th>
                             </tr>
                         </thead>
-                        <tbody id="tableRiwayatBody" class="text-sm text-gray-700">
-                            <tr>
-                                <td colspan="4" class="p-10 text-gray-400 italic">Belum ada santri yang mengerjakan...</td>
-                            </tr>
+                        <tbody id="tableRiwayatBody" class="text-sm">
+                            <tr><td colspan="4" class="p-10 text-center text-slate-400">Belum ada data...</td></tr>
                         </tbody>
                     </table>
                 </div>
@@ -88,7 +157,6 @@
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
         import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
-        // CONFIG FIREBASE ANDA
         const firebaseConfig = {
             apiKey: "AIzaSyBQp9Olce8JK6Y8DmjJo8zkR_1XJri8Yco",
             authDomain: "farhan-34b24.firebaseapp.com",
@@ -105,104 +173,122 @@
         const provider = new GoogleAuthProvider();
 
         let currentGuruID = "";
+        let currentTipe = "esai";
+        let daftarSoal = [];
 
-        // LOGIN GOOGLE
+        // NAVIGASI LOGIN
+        window.showLogin = (role) => {
+            document.getElementById('landingSection').classList.add('hidden');
+            if(role === 'guru') document.getElementById('loginGuru').classList.remove('hidden');
+            else document.getElementById('loginMurid').classList.remove('hidden');
+        };
+
+        // LOGIN GOOGLE GURU
         document.getElementById('loginBtn').onclick = async () => {
             try {
                 const result = await signInWithPopup(auth, provider);
                 currentGuruID = result.user.uid;
-                
-                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('loginGuru').classList.add('hidden');
                 document.getElementById('dashboardSection').classList.remove('hidden');
                 document.getElementById('userInfo').classList.remove('hidden');
-                document.getElementById('userNameDisp').innerText = "Ust. " + result.user.displayName;
-                
-                // Buat Kode Akses Acak (Contoh: AR7X1)
+                document.getElementById('userNameDisp').innerText = result.user.displayName;
                 document.getElementById('generatedID').innerText = Math.random().toString(36).substring(2, 7).toUpperCase();
-                
                 loadRiwayat();
             } catch (error) {
-                alert("Gagal Masuk: " + error.message);
+                alert("Error Login: " + error.message);
             }
         };
 
-        // SIMPAN SOAL KE DATABASE (FIRESTORE)
+        // SET TIPE SOAL (ESAI/PG)
+        window.setTipe = (tipe) => {
+            currentTipe = tipe;
+            const bE = document.getElementById('btnEsai');
+            const bP = document.getElementById('btnPg');
+            const oPG = document.getElementById('opsiPG');
+            if(tipe === 'esai') {
+                bE.className = "p-3 border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold rounded-xl transition";
+                bP.className = "p-3 border-2 border-slate-200 text-slate-500 font-bold rounded-xl transition";
+                oPG.classList.add('hidden');
+            } else {
+                bP.className = "p-3 border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold rounded-xl transition";
+                bE.className = "p-3 border-2 border-slate-200 text-slate-500 font-bold rounded-xl transition";
+                oPG.classList.remove('hidden');
+            }
+        };
+
+        // TAMBAH SOAL KE LIST SEMENTARA
+        document.getElementById('addSoal').onclick = () => {
+            const teks = document.getElementById('teksSoal').value;
+            if(!teks) return alert("Isi pertanyaan dulu!");
+
+            let dataSoal = { tipe: currentTipe, pertanyaan: teks };
+            if(currentTipe === 'pg') {
+                dataSoal.pilihan = {
+                    benar: document.getElementById('opt_benar').value,
+                    salah: [
+                        document.getElementById('opt_salah1').value,
+                        document.getElementById('opt_salah2').value,
+                        document.getElementById('opt_salah3').value
+                    ]
+                };
+            }
+            
+            daftarSoal.push(dataSoal);
+            document.getElementById('soalCounter').innerText = `${daftarSoal.length} Soal Siap`;
+            
+            // Reset Form Pertanyaan
+            document.getElementById('teksSoal').value = "";
+            document.getElementById('opt_benar').value = "";
+            document.getElementById('opt_salah1').value = "";
+            document.getElementById('opt_salah2').value = "";
+            document.getElementById('opt_salah3').value = "";
+            alert("Soal ditambahkan! Silakan buat soal berikutnya atau klik SIMPAN & BAGIKAN.");
+        };
+
+        // SIMPAN SEMUA KE FIREBASE
         document.getElementById('saveQuiz').onclick = async () => {
             const judul = document.getElementById('judulTugas').value;
-            const soal = document.getElementById('teksSoal').value;
             const code = document.getElementById('generatedID').innerText;
 
-            if(!judul || !soal) return alert("Mohon lengkapi judul dan isi soal!");
+            if(!judul || daftarSoal.length === 0) return alert("Mohon isi judul dan minimal 1 soal!");
 
             try {
                 await addDoc(collection(db, "tugas"), {
                     guruId: currentGuruID,
+                    guruName: auth.currentUser.displayName,
                     judul: judul,
-                    isiSoal: soal,
+                    soal: daftarSoal,
                     kodeAkses: code,
                     waktuDibuat: serverTimestamp()
                 });
                 
-                alert("Alhamdulillah! Soal berhasil disimpan.\nKode Akses Santri: " + code);
-                
-                // Reset Form
-                document.getElementById('judulTugas').value = "";
-                document.getElementById('teksSoal').value = "";
-                document.getElementById('generatedID').innerText = Math.random().toString(36).substring(2, 7).toUpperCase();
-                
-            } catch (e) {
-                console.error("Gagal simpan:", e);
-                alert("Terjadi kesalahan saat menyimpan ke database.");
-            }
+                alert("BERHASIL! Semua soal dalam ID " + code + " sudah bisa diakses murid.");
+                location.reload();
+            } catch (e) { alert("Gagal Simpan: " + e.message); }
         };
 
-        // LOAD DATA RIWAYAT DARI DATABASE
+        // TAB NAVIGATION
+        window.showTab = (tab) => {
+            document.getElementById('tabBuatSoal').classList.toggle('hidden', tab !== 'buatSoal');
+            document.getElementById('tabRiwayat').classList.toggle('hidden', tab !== 'riwayat');
+        };
+
+        // GOOGLE MEET
+        document.getElementById('btnMeet').onclick = () => {
+            window.open("https://meet.google.com/new", "_blank");
+        };
+
         function loadRiwayat() {
             const q = query(collection(db, "jawaban_murid"), where("idGuru", "==", currentGuruID));
-            onSnapshot(q, (snapshot) => {
-                const tbody = document.getElementById('tableRiwayatBody');
-                if (snapshot.empty) return;
-                
-                tbody.innerHTML = "";
-                snapshot.forEach((doc) => {
-                    const data = doc.data();
-                    tbody.innerHTML += `
-                        <tr class="border-b hover:bg-gray-50 transition">
-                            <td class="p-3 font-semibold">${data.namaMurid}</td>
-                            <td class="p-3 text-blue-600 font-mono">${data.kodeAkses}</td>
-                            <td class="p-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">${data.skor || 'Terkirim'}</span></td>
-                            <td class="p-3">${data.durasi || '0'} mnt</td>
-                        </tr>
-                    `;
+            onSnapshot(q, (sn) => {
+                const b = document.getElementById('tableRiwayatBody');
+                b.innerHTML = sn.empty ? '<tr><td colspan="4" class="p-10 text-center">Belum ada santri...</td></tr>' : "";
+                sn.forEach(d => {
+                    const r = d.data();
+                    b.innerHTML += `<tr class="border-b"><td class="p-4 font-bold">${r.namaMurid}</td><td class="p-4 text-center">${r.kelas}</td><td class="p-4 text-center font-mono text-blue-600">${r.skor}</td><td class="p-4 text-center"><button class="text-blue-500">Lihat</button></td></tr>`;
                 });
             });
         }
-
-        // FITUR ZOOM POP-UP
-        document.getElementById('btnZoom').onclick = () => {
-            window.open("https://zoom.us/join", "ZoomPopup", "width=900,height=700,scrollbars=yes");
-        };
-
-        // LOGIKA TAB (Pindah Layar)
-        window.showTab = (tabName) => {
-            const tabSoal = document.getElementById('tabBuatSoal');
-            const tabRiwayat = document.getElementById('tabRiwayat');
-            const btnSoal = document.getElementById('btnTabSoal');
-            const btnRiwayat = document.getElementById('btnTabRiwayat');
-
-            if(tabName === 'buatSoal') {
-                tabSoal.classList.remove('hidden');
-                tabRiwayat.classList.add('hidden');
-                btnSoal.className = "bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition";
-                btnRiwayat.className = "bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition";
-            } else {
-                tabSoal.classList.add('hidden');
-                tabRiwayat.classList.remove('hidden');
-                btnSoal.className = "bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition";
-                btnRiwayat.className = "bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition";
-            }
-        }
     </script>
-
 </body>
 </html>

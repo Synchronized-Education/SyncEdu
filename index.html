@@ -80,6 +80,15 @@
             <button onclick="location.reload()" class="w-full text-slate-400 text-sm mt-6 hover:underline text-center font-medium">Kembali ke Menu Utama</button>
         </div>
 
+        <div id="quizSection" class="hidden mt-6 bg-white p-8 rounded-3xl shadow-2xl border border-slate-100">
+            <div class="mb-6 border-b pb-4">
+                <h2 id="displayJudulTugas" class="text-2xl font-black text-slate-800 italic">Judul Tugas</h2>
+                <p id="displayIdentitas" class="text-slate-500 font-bold uppercase text-xs mt-1"></p>
+            </div>
+            <div id="containerSoal" class="space-y-8"></div>
+            <button id="submitJawaban" class="w-full mt-10 bg-blue-600 text-white py-5 rounded-2xl font-black hover:bg-blue-700 shadow-xl transition-all uppercase tracking-widest">Kirim Jawaban Anda</button>
+        </div>
+
         <div id="dashboardSection" class="hidden mt-6">
             <div class="flex flex-wrap gap-2 mb-6">
                 <button onclick="showTab('buatSoal')" id="btnTabSoal" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition">Buat Soal</button>
@@ -179,6 +188,7 @@
         let currentGuruID = "";
         let currentTipe = "esai";
         let daftarSoal = [];
+        let tugasAktif = null;
 
         window.showLogin = (role) => {
             document.getElementById('landingSection').classList.add('hidden');
@@ -201,7 +211,7 @@
             }
         };
 
-        // PERBAIKAN LOGIKA MASUK MURID
+        // PERBAIKAN LOGIKA MASUK MURID (DILENGKAPI DENGAN RENDER SOAL)
         document.getElementById('btnMasukMurid').onclick = async () => {
             const nama = document.getElementById('m_nama').value;
             const kelas = document.getElementById('m_kelas').value;
@@ -210,21 +220,85 @@
             if(!nama || !kelas || !idGuru) return alert("Mohon lengkapi semua data!");
 
             try {
-                // Mencari tugas di Firestore berdasarkan kodeAkses
                 const q = query(collection(db, "tugas"), where("kodeAkses", "==", idGuru));
                 const querySnapshot = await getDocs(q);
 
                 if (querySnapshot.empty) {
                     alert("ID Guru tidak ditemukan! Mohon periksa kembali.");
                 } else {
-                    const dataTugas = querySnapshot.docs[0].data();
-                    alert(`Alhamdulillah, berhasil terhubung dengan tugas: ${dataTugas.judul}\nSilakan mulai mengerjakan!`);
-                    // Di sini Anda bisa mengarahkan ke halaman pengerjaan soal
+                    tugasAktif = querySnapshot.docs[0].data();
+                    alert(`Alhamdulillah, berhasil terhubung dengan tugas: ${tugasAktif.judul}\nSilakan mulai mengerjakan!`);
+                    
+                    // Sembunyikan Login & Tampilkan Section Kuis
+                    document.getElementById('loginMurid').classList.add('hidden');
+                    document.getElementById('quizSection').classList.remove('hidden');
+                    document.getElementById('displayJudulTugas').innerText = tugasAktif.judul;
+                    document.getElementById('displayIdentitas').innerText = `${nama} | Kelas ${kelas}`;
+                    
+                    renderSoal(tugasAktif.soal);
                 }
             } catch (e) {
                 console.error(e);
                 alert("Terjadi kesalahan saat mencari ID Guru.");
             }
+        };
+
+        function renderSoal(soalList) {
+            const container = document.getElementById('containerSoal');
+            container.innerHTML = "";
+            soalList.forEach((s, index) => {
+                let html = `<div class="bg-slate-50 p-6 rounded-2xl border border-slate-200">
+                    <p class="font-bold text-slate-800 mb-4">${index + 1}. ${s.pertanyaan}</p>`;
+                
+                if(s.tipe === 'esai') {
+                    html += `<textarea class="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" rows="3" placeholder="Tulis jawaban Anda di sini..."></textarea>`;
+                } else {
+                    const semuaOpsi = [s.pilihan.benar, ...s.pilihan.salah].sort(() => Math.random() - 0.5);
+                    html += `<div class="grid grid-cols-1 gap-2">`;
+                    semuaOpsi.forEach(opt => {
+                        html += `<label class="flex items-center gap-3 p-3 bg-white border border-slate-200 rounded-xl hover:bg-blue-50 cursor-pointer">
+                            <input type="radio" name="soal_${index}" value="${opt}" class="w-4 h-4 text-blue-600">
+                            <span class="text-slate-700">${opt}</span>
+                        </label>`;
+                    });
+                    html += `</div>`;
+                }
+                html += `</div>`;
+                container.innerHTML += html;
+            });
+        }
+
+        // LOGIKA KIRIM JAWABAN
+        document.getElementById('submitJawaban').onclick = async () => {
+            const containers = document.querySelectorAll('#containerSoal > div');
+            let totalBenar = 0;
+            let jawabanSiswa = [];
+
+            tugasAktif.soal.forEach((s, index) => {
+                let jaw = "";
+                if(s.tipe === 'esai') {
+                    jaw = containers[index].querySelector('textarea').value;
+                } else {
+                    const selected = containers[index].querySelector(`input[name="soal_${index}"]:checked`);
+                    jaw = selected ? selected.value : "";
+                    if(jaw === s.pilihan.benar) totalBenar++;
+                }
+                jawabanSiswa.push({ pertanyaan: s.pertanyaan, jawaban: jaw });
+            });
+
+            try {
+                await addDoc(collection(db, "jawaban_murid"), {
+                    namaMurid: document.getElementById('m_nama').value,
+                    kelas: document.getElementById('m_kelas').value,
+                    idGuru: tugasAktif.guruId,
+                    judulTugas: tugasAktif.judul,
+                    jawaban: jawabanSiswa,
+                    skor: s.tipe === 'pg' ? `${totalBenar}/${tugasAktif.soal.length}` : "Perlu Dinilai",
+                    waktuSelesai: serverTimestamp()
+                });
+                alert("Jawaban Anda berhasil dikirim!");
+                location.reload();
+            } catch (e) { alert("Gagal mengirim jawaban: " + e.message); }
         };
 
         window.setTipe = (tipe) => {

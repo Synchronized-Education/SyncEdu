@@ -1,0 +1,208 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SyncEdu - Platform Guru & Santri</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-slate-50 min-h-screen font-sans">
+
+    <nav class="bg-blue-700 text-white p-4 shadow-lg">
+        <div class="container mx-auto flex justify-between items-center">
+            <h1 class="text-2xl font-bold italic">SyncEdu</h1>
+            <div id="userInfo" class="hidden flex items-center gap-3">
+                <span id="userNameDisp" class="text-sm font-medium"></span>
+                <button onclick="location.reload()" class="bg-red-500 hover:bg-red-600 px-3 py-1 rounded text-xs transition">Keluar</button>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container mx-auto p-4 max-w-4xl">
+        <div id="loginSection" class="bg-white mt-10 p-8 rounded-2xl shadow-xl text-center max-w-md mx-auto border border-blue-100">
+            <h2 class="text-2xl font-bold mb-2 text-blue-700">Selamat Datang, Ustadz/Guru</h2>
+            <p class="text-gray-500 mb-8 text-sm">Silakan masuk untuk mengelola tugas santri.</p>
+            <button id="loginBtn" class="flex items-center justify-center gap-3 bg-white border border-gray-300 text-gray-700 px-6 py-3 rounded-lg hover:bg-gray-50 transition w-full shadow-sm font-semibold">
+                <img src="https://www.gstatic.com/firebasejs/ui/2.0.0/images/auth/google.svg" alt="Google" class="w-5 h-5">
+                Masuk dengan Google
+            </button>
+        </div>
+
+        <div id="dashboardSection" class="hidden mt-6">
+            <div class="flex flex-wrap gap-2 mb-6">
+                <button onclick="showTab('buatSoal')" id="btnTabSoal" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition">Buat Soal</button>
+                <button onclick="showTab('riwayat')" id="btnTabRiwayat" class="bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition">Riwayat Nilai</button>
+                <button id="btnZoom" class="bg-orange-500 hover:bg-orange-600 text-white px-6 py-2 rounded-full font-medium ml-auto flex items-center gap-2 shadow-md">
+                    🎥 Buka Zoom (Pop-up)
+                </button>
+            </div>
+
+            <div id="tabBuatSoal" class="bg-white p-6 rounded-xl shadow-md border border-gray-100 animate-fade-in">
+                <h3 class="text-xl font-bold mb-4 text-gray-800 border-b pb-2">Buat Tugas Baru</h3>
+                <div class="space-y-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Mata Pelajaran / Judul Tugas</label>
+                        <input type="text" id="judulTugas" class="w-full p-2 border border-gray-300 rounded-md mt-1 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Contoh: Nahwu - Bab Isim">
+                    </div>
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700">Pertanyaan (Bisa Esai atau Pilihan Ganda)</label>
+                        <textarea id="teksSoal" rows="4" class="w-full p-2 border border-gray-300 rounded-md mt-1 focus:ring-2 focus:ring-blue-500 outline-none" placeholder="Tuliskan soal-soal Anda di sini..."></textarea>
+                    </div>
+                    <div class="flex items-center justify-between bg-blue-50 p-5 rounded-xl border border-blue-100">
+                        <div>
+                            <p class="text-xs text-blue-800 font-bold uppercase tracking-wider">Kode Akses Santri:</p>
+                            <p id="generatedID" class="text-3xl font-mono text-blue-700 font-black">-----</p>
+                        </div>
+                        <button id="saveQuiz" class="bg-green-600 text-white px-10 py-4 rounded-xl font-bold hover:bg-green-700 transition shadow-lg transform active:scale-95">
+                            Simpan & Bagikan
+                        </button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="tabRiwayat" class="hidden bg-white p-6 rounded-xl shadow-md border border-gray-100">
+                <h3 class="text-xl font-bold mb-4 text-gray-800">Riwayat Pengerjaan Santri</h3>
+                <div class="overflow-x-auto text-center">
+                    <table class="w-full border-collapse">
+                        <thead>
+                            <tr class="bg-gray-100 text-gray-600 text-sm">
+                                <th class="p-3 border-b">Nama Santri</th>
+                                <th class="p-3 border-b">ID Tugas</th>
+                                <th class="p-3 border-b">Hasil</th>
+                                <th class="p-3 border-b">Durasi</th>
+                            </tr>
+                        </thead>
+                        <tbody id="tableRiwayatBody" class="text-sm text-gray-700">
+                            <tr>
+                                <td colspan="4" class="p-10 text-gray-400 italic">Belum ada santri yang mengerjakan...</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+        import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+        // CONFIG FIREBASE ANDA
+        const firebaseConfig = {
+            apiKey: "AIzaSyBQp9Olce8JK6Y8DmjJo8zkR_1XJri8Yco",
+            authDomain: "farhan-34b24.firebaseapp.com",
+            projectId: "farhan-34b24",
+            storageBucket: "farhan-34b24.firebasestorage.app",
+            messagingSenderId: "692021812815",
+            appId: "1:692021812815:web:bfdf704519a171c1d6543a",
+            measurementId: "G-S3KF1Q0MNG"
+        };
+
+        const app = initializeApp(firebaseConfig);
+        const auth = getAuth(app);
+        const db = getFirestore(app);
+        const provider = new GoogleAuthProvider();
+
+        let currentGuruID = "";
+
+        // LOGIN GOOGLE
+        document.getElementById('loginBtn').onclick = async () => {
+            try {
+                const result = await signInWithPopup(auth, provider);
+                currentGuruID = result.user.uid;
+                
+                document.getElementById('loginSection').classList.add('hidden');
+                document.getElementById('dashboardSection').classList.remove('hidden');
+                document.getElementById('userInfo').classList.remove('hidden');
+                document.getElementById('userNameDisp').innerText = "Ust. " + result.user.displayName;
+                
+                // Buat Kode Akses Acak (Contoh: AR7X1)
+                document.getElementById('generatedID').innerText = Math.random().toString(36).substring(2, 7).toUpperCase();
+                
+                loadRiwayat();
+            } catch (error) {
+                alert("Gagal Masuk: " + error.message);
+            }
+        };
+
+        // SIMPAN SOAL KE DATABASE (FIRESTORE)
+        document.getElementById('saveQuiz').onclick = async () => {
+            const judul = document.getElementById('judulTugas').value;
+            const soal = document.getElementById('teksSoal').value;
+            const code = document.getElementById('generatedID').innerText;
+
+            if(!judul || !soal) return alert("Mohon lengkapi judul dan isi soal!");
+
+            try {
+                await addDoc(collection(db, "tugas"), {
+                    guruId: currentGuruID,
+                    judul: judul,
+                    isiSoal: soal,
+                    kodeAkses: code,
+                    waktuDibuat: serverTimestamp()
+                });
+                
+                alert("Alhamdulillah! Soal berhasil disimpan.\nKode Akses Santri: " + code);
+                
+                // Reset Form
+                document.getElementById('judulTugas').value = "";
+                document.getElementById('teksSoal').value = "";
+                document.getElementById('generatedID').innerText = Math.random().toString(36).substring(2, 7).toUpperCase();
+                
+            } catch (e) {
+                console.error("Gagal simpan:", e);
+                alert("Terjadi kesalahan saat menyimpan ke database.");
+            }
+        };
+
+        // LOAD DATA RIWAYAT DARI DATABASE
+        function loadRiwayat() {
+            const q = query(collection(db, "jawaban_murid"), where("idGuru", "==", currentGuruID));
+            onSnapshot(q, (snapshot) => {
+                const tbody = document.getElementById('tableRiwayatBody');
+                if (snapshot.empty) return;
+                
+                tbody.innerHTML = "";
+                snapshot.forEach((doc) => {
+                    const data = doc.data();
+                    tbody.innerHTML += `
+                        <tr class="border-b hover:bg-gray-50 transition">
+                            <td class="p-3 font-semibold">${data.namaMurid}</td>
+                            <td class="p-3 text-blue-600 font-mono">${data.kodeAkses}</td>
+                            <td class="p-3"><span class="bg-green-100 text-green-700 px-2 py-1 rounded text-xs font-bold">${data.skor || 'Terkirim'}</span></td>
+                            <td class="p-3">${data.durasi || '0'} mnt</td>
+                        </tr>
+                    `;
+                });
+            });
+        }
+
+        // FITUR ZOOM POP-UP
+        document.getElementById('btnZoom').onclick = () => {
+            window.open("https://zoom.us/join", "ZoomPopup", "width=900,height=700,scrollbars=yes");
+        };
+
+        // LOGIKA TAB (Pindah Layar)
+        window.showTab = (tabName) => {
+            const tabSoal = document.getElementById('tabBuatSoal');
+            const tabRiwayat = document.getElementById('tabRiwayat');
+            const btnSoal = document.getElementById('btnTabSoal');
+            const btnRiwayat = document.getElementById('btnTabRiwayat');
+
+            if(tabName === 'buatSoal') {
+                tabSoal.classList.remove('hidden');
+                tabRiwayat.classList.add('hidden');
+                btnSoal.className = "bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition";
+                btnRiwayat.className = "bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition";
+            } else {
+                tabSoal.classList.add('hidden');
+                tabRiwayat.classList.remove('hidden');
+                btnSoal.className = "bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition";
+                btnRiwayat.className = "bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition";
+            }
+        }
+    </script>
+
+</body>
+</html>

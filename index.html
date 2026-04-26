@@ -211,7 +211,6 @@
             }
         };
 
-        // PERBAIKAN LOGIKA MASUK MURID (DILENGKAPI DENGAN RENDER SOAL)
         document.getElementById('btnMasukMurid').onclick = async () => {
             const nama = document.getElementById('m_nama').value;
             const kelas = document.getElementById('m_kelas').value;
@@ -229,7 +228,6 @@
                     tugasAktif = querySnapshot.docs[0].data();
                     alert(`Alhamdulillah, berhasil terhubung dengan tugas: ${tugasAktif.judul}\nSilakan mulai mengerjakan!`);
                     
-                    // Sembunyikan Login & Tampilkan Section Kuis
                     document.getElementById('loginMurid').classList.add('hidden');
                     document.getElementById('quizSection').classList.remove('hidden');
                     document.getElementById('displayJudulTugas').innerText = tugasAktif.judul;
@@ -268,17 +266,18 @@
             });
         }
 
-        // LOGIKA KIRIM JAWABAN
         document.getElementById('submitJawaban').onclick = async () => {
             const containers = document.querySelectorAll('#containerSoal > div');
             let totalBenar = 0;
             let jawabanSiswa = [];
+            let hasPg = false;
 
             tugasAktif.soal.forEach((s, index) => {
                 let jaw = "";
                 if(s.tipe === 'esai') {
                     jaw = containers[index].querySelector('textarea').value;
                 } else {
+                    hasPg = true;
                     const selected = containers[index].querySelector(`input[name="soal_${index}"]:checked`);
                     jaw = selected ? selected.value : "";
                     if(jaw === s.pilihan.benar) totalBenar++;
@@ -287,18 +286,23 @@
             });
 
             try {
+                // Perbaikan variabel 's' yang error sebelumnya
+                const skorAkhir = hasPg ? `${totalBenar}/${tugasAktif.soal.filter(x => x.tipe === 'pg').length}` : "Perlu Dinilai";
+
                 await addDoc(collection(db, "jawaban_murid"), {
                     namaMurid: document.getElementById('m_nama').value,
                     kelas: document.getElementById('m_kelas').value,
                     idGuru: tugasAktif.guruId,
                     judulTugas: tugasAktif.judul,
                     jawaban: jawabanSiswa,
-                    skor: s.tipe === 'pg' ? `${totalBenar}/${tugasAktif.soal.length}` : "Perlu Dinilai",
+                    skor: skorAkhir,
                     waktuSelesai: serverTimestamp()
                 });
                 alert("Jawaban Anda berhasil dikirim!");
                 location.reload();
-            } catch (e) { alert("Gagal mengirim jawaban: " + e.message); }
+            } catch (e) { 
+                alert("Gagal mengirim jawaban: " + e.message); 
+            }
         };
 
         window.setTipe = (tipe) => {

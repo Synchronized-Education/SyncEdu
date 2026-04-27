@@ -91,7 +91,7 @@
                 <button onclick="showTab('buatSoal')" id="btnTabSoal" class="bg-blue-600 text-white px-6 py-2 rounded-full font-medium shadow-md transition">Buat Soal</button>
                 <button onclick="showTab('riwayat')" id="btnTabRiwayat" class="bg-white text-blue-600 border border-blue-600 px-6 py-2 rounded-full font-medium transition">Riwayat Nilai</button>
                 <button id="btnMeet" class="bg-emerald-500 hover:bg-emerald-600 text-white px-6 py-2 rounded-full font-medium ml-auto flex items-center gap-2 shadow-md">
-                    🎥 Google Meet
+                    📽 Google Meet
                 </button>
             </div>
 
@@ -109,7 +109,7 @@
 
                     <div class="grid grid-cols-2 gap-4">
                         <button onclick="setTipe('esai')" id="btnEsai" class="p-4 border-2 border-blue-600 bg-blue-50 text-blue-700 font-bold rounded-2xl transition">📝 Esai</button>
-                        <button onclick="setTipe('pg')" id="btnPg" class="p-4 border-2 border-slate-200 text-slate-400 font-bold rounded-2xl hover:bg-slate-50 transition">🔘 Pilihan Ganda</button>
+                        <button onclick="setTipe('pg')" id="btnPg" class="p-4 border-2 border-slate-200 text-slate-400 font-bold rounded-2xl hover:bg-slate-50 transition">📑 Pilihan Ganda</button>
                     </div>
 
                     <div id="formSoal" class="space-y-4 bg-slate-50 p-6 rounded-3xl border border-slate-200">
@@ -183,7 +183,7 @@
     <script type="module">
         import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
         import { getAuth, signInWithPopup, GoogleAuthProvider } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
-        import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot, getDocs, doc, getDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+        import { getFirestore, collection, addDoc, serverTimestamp, query, where, onSnapshot, getDocs, doc, deleteDoc } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
         // KODE FIREBASE (TIDAK DIUBAH)
         const firebaseConfig = {
@@ -270,7 +270,6 @@
                 if(s.tipe === 'esai') {
                     html += `<textarea class="w-full p-4 rounded-xl border border-slate-300 focus:ring-2 focus:ring-blue-500 outline-none" rows="3" placeholder="Tulis jawaban Anda di sini..."></textarea>`;
                 } else {
-                    // Pilihan ganda acak opsi
                     const semuaOpsi = [s.pilihan.benar, ...s.pilihan.salah].sort(() => Math.random() - 0.5);
                     html += `<div class="grid grid-cols-1 gap-2">`;
                     semuaOpsi.forEach(opt => {
@@ -302,7 +301,6 @@
                     jaw = selected ? selected.value : "Tidak dijawab";
                     if(jaw === s.pilihan.benar) totalBenar++;
                     
-                    // Simpan data soal PG untuk pengecekan warna nanti
                     jawabanSiswa.push({ 
                         pertanyaan: s.pertanyaan, 
                         jawaban: jaw, 
@@ -405,7 +403,6 @@
             }
         };
 
-        // LOGIKA BARU UNTAK DETAIL & PENILAIAN
         window.bukaDetail = (index) => {
             activeDetailIndex = index;
             const data = dataJawabanLengkap[index];
@@ -416,7 +413,6 @@
                 let innerContent = "";
                 
                 if(j.tipe === 'esai') {
-                    // Logika Esai dengan kotak centang
                     const statusBenar = j.status === 'benar' ? 'checked' : '';
                     const statusSalah = j.status === 'salah' ? 'checked' : '';
                     
@@ -438,7 +434,6 @@
                             </div>
                         </div>`;
                 } else {
-                    // Logika Pilihan Ganda dengan Warna
                     const daftarOpsi = [j.benar, ...(j.salah || [])];
                     let listOpsiHtml = `<div class="grid grid-cols-1 gap-1 mt-2">`;
                     
@@ -455,7 +450,7 @@
                                 textColor = "text-white font-bold";
                             }
                         } else if (opt === j.benar) {
-                            bgColor = "bg-emerald-100 border-emerald-300"; // Tanda kunci jawaban asli
+                            bgColor = "bg-emerald-100 border-emerald-300";
                         }
 
                         listOpsiHtml += `<div class="text-xs p-2 rounded-lg border ${bgColor} ${textColor}">${opt}</div>`;
@@ -477,14 +472,12 @@
             document.getElementById('modalDetail').classList.remove('hidden');
         };
 
-        // Fungsi pembantu untuk menyimpan pilihan esai di memori
         window.updateStatusEsai = (soalIndex, status) => {
             if(activeDetailIndex !== null) {
                 dataJawabanLengkap[activeDetailIndex].jawaban[soalIndex].status = status;
             }
         };
 
-        // Tombol simpan penilaian di modal
         document.getElementById('btnSimpanPenilaian').onclick = () => {
             if(activeDetailIndex === null) return;
             
@@ -497,11 +490,22 @@
                 if(j.tipe === 'esai' && j.status === 'benar') benar++;
             });
 
-            // Update skor di memori dan tutup modal
             item.skor = `${benar}/${totalSoal}`;
             alert("Penilaian berhasil disimpan untuk sesi ini!");
             document.getElementById('modalDetail').classList.add('hidden');
-            renderTableRiwayat(); // Refresh tampilan tabel
+            renderTableRiwayat();
+        };
+
+        // FUNGSI BARU UNTUK HAPUS PERMANEN
+        window.hapusDataPermanen = async (idDoc, nama) => {
+            if (confirm(`Apakah Anda yakin ingin menghapus data milik "${nama}" secara permanen?`)) {
+                try {
+                    await deleteDoc(doc(db, "jawaban_murid", idDoc));
+                    alert("Data berhasil dihapus!");
+                } catch (error) {
+                    alert("Gagal menghapus: " + error.message);
+                }
+            }
         };
 
         function renderTableRiwayat() {
@@ -516,7 +520,10 @@
                         <td class="p-3 border font-medium">${r.judulTugas}</td>
                         <td class="p-3 border text-center font-mono font-bold text-blue-600 bg-slate-50/50">${r.skor}</td>
                         <td class="p-3 border text-center">
-                            <button onclick="bukaDetail(${idx})" class="bg-blue-600 text-white px-4 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm">DETAIL</button>
+                            <div class="flex gap-2 justify-center">
+                                <button onclick="bukaDetail(${idx})" class="bg-blue-600 text-white px-4 py-1 rounded-lg text-xs font-bold hover:bg-blue-700 transition-all shadow-sm">DETAIL</button>
+                                <button onclick="hapusDataPermanen('${r.idDoc}', '${r.namaMurid}')" class="bg-red-600 text-white px-4 py-1 rounded-lg text-xs font-bold hover:bg-red-700 transition-all shadow-sm">HAPUS</button>
+                            </div>
                         </td>
                     </tr>`;
             });
@@ -527,7 +534,7 @@
             onSnapshot(q, (sn) => {
                 dataJawabanLengkap = [];
                 sn.forEach((d) => {
-                    dataJawabanLengkap.push(d.data());
+                    dataJawabanLengkap.push({ ...d.data(), idDoc: d.id });
                 });
                 renderTableRiwayat();
             });
